@@ -297,15 +297,15 @@ with st.sidebar:
 
     if st.button("Apply Filters"):
         # The button now simply switches the view. The filtering happens automatically.
-        st.query_params.view = 'filtered_results'
-        st.query_params.page = "1"
+        st.experimental_set_query_params.view = 'filtered_results'
+        st.experimental_set_query_params.page = "1"
 
     st.markdown("<h2 class='sidebar-header'>🏆 Top Movies</h2>", unsafe_allow_html=True)
     st.write("")
     if st.button("Show Top Movies"):
         st.session_state.top_movies = get_top_movies()
-        st.query_params.view = 'top_movies'
-        st.query_params.page = "1"
+        st.experimental_set_query_params.view = 'top_movies'
+        st.experimental_set_query_params.page = "1"
 
 # --- Main Page Content ---
 st.markdown("<a href='/?view=home' target='_self' class='nav-btn home-btn'>🏠 Home</a>", unsafe_allow_html=True)
@@ -313,7 +313,7 @@ st.markdown("<h1 class='main-header'>🎬 CineMatch</h1>", unsafe_allow_html=Tru
 st.markdown("<p style='text-align: center;'>Your Ultimate Movie Recommendation System</p>", unsafe_allow_html=True)
 
 # --- View Routing Logic ---
-params = st.query_params
+params = st.experimental_set_query_params
 st.session_state.view = params.get('view', 'home')
 st.session_state.current_page = int(params.get('page', 1))
 if 'movie' in params:
@@ -354,10 +354,10 @@ elif st.session_state.view == 'top_movies':
         st.write("")
         c1, c2, c3 = st.columns([3, 1, 3])
         if c1.button("⬅️ Previous", use_container_width=True, disabled=(page <= 1)):
-            st.query_params.page = str(page - 1)
+            st.experimental_set_query_params.page = str(page - 1)
         c2.markdown(f"<div style='text-align: center; margin-top: 0.5rem;'>Page {page} of {total_pages}</div>", unsafe_allow_html=True)
         if c3.button("Next ➡️", use_container_width=True, disabled=(page >= total_pages)):
-            st.query_params.page = str(page + 1)
+            st.experimental_set_query_params.page = str(page + 1)
 
 elif st.session_state.view == 'filtered_results':
     st.header("Filtered Movie Results")
@@ -379,10 +379,10 @@ elif st.session_state.view == 'filtered_results':
         st.write("")
         c1, c2, c3 = st.columns([3, 1, 3])
         if c1.button("⬅️ Previous", use_container_width=True, disabled=(page <= 1)):
-            st.query_params.page = str(page - 1)
+            st.experimental_set_query_params.page = str(page - 1)
         c2.markdown(f"<div style='text-align: center; margin-top: 0.5rem;'>Page {page} of {total_pages}</div>", unsafe_allow_html=True)
         if c3.button("Next ➡️", use_container_width=True, disabled=(page >= total_pages)):
-            st.query_params.page = str(page + 1)
+            st.experimental_set_query_params.page = str(page + 1)
     else:
         st.warning("No movies found with the current filters. Please try different options.")
 
