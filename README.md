@@ -1,89 +1,96 @@
-# 🎬 CineMatch - Movies Recommendation System
+# 🎬 CineMatch - Movies Recommendation System  
 
-An intelligent movie discovery platform that provides personalized suggestions. This repository contains the complete data processing and model training pipeline, which generates the files needed for the final Streamlit web application.
-
-
----
- ## 🚀 About The Project
-
-This project implements a **content-based movie recommendation system** designed to predict user preferences. The core of the recommendation engine uses cosine similarity based on a rich set of semantic and contributor metadata, allowing for nuanced and contextually relevant suggestions.
-
-The entire process is contained within the `Movie Recommendation System.ipynb` notebook, which performs data cleaning, feature engineering, and model creation, ultimately exporting the necessary data files for the interactive Streamlit application.
-
----
-<img width="1919" height="993" alt="CineMatch App Interface" src="https://github.com/user-attachments/assets/230f0af7-735b-4b01-b2e2-7b224bda6c82" />
-<img width-="1919" height="995" alt="CineMatch App Details Page" src="https://github.com/user-attachments/assets/65c9babe-efac-483b-9e4b-11b6a19b2bb2" />
+An intelligent movie discovery platform that provides personalized movie suggestions. This repository contains the complete data processing and model training pipeline, which generates the files needed for the final Streamlit web application.  
 
 ---
 
- ## 🧠 The Recommendation Pipeline
+## 🚀 About The Project  
 
-The engine is built on a classic NLP model pipeline:
+CineMatch is a *content-based recommendation system* that predicts user preferences and suggests movies with similar themes, genres, or contributors.  
 
-1.  **Feature Engineering**: Raw data from the TMDB 5000 dataset is cleaned, merged, and consolidated into a composite text "tag" for each movie. This tag holistically represents the film by combining its narrative synopsis with key metadata.
-
-2.  **Text Vectorization**: The text tags are normalized through lowercasing and stemming. They are then converted into a high-dimensional vector space using Scikit-learn's `CountVectorizer`, turning each movie into a numerical fingerprint.
-
-3.  **Similarity Modeling**: A **Cosine Similarity** matrix is computed between all movie vectors. This matrix quantifies the contextual closeness of any two films and serves as the final recommendation model, which is then serialized as a `.pkl` file for the app.
----
-
- ## ✨ Features of the Final App
-
-* 🧠 **Content-Based Recommendations**: Get instant, relevant movie suggestions.
-* 🔥 **Interactive Homepage**: Discover popular movies with a "Top Picks For Today" section.
-* 🔎 **Advanced Filtering**: Search the database by genre, actor, director, and more.
-* ℹ️ **Detailed Movie View**: Access a rich details page for every movie.
-* 📄 **Paginated Results**: Easily browse through large lists of films.
-* 🔒 **Secure API Key Management**: Uses Streamlit's secrets for API key handling.
+The recommendation engine is built on cosine similarity applied to a carefully engineered set of metadata, ensuring *contextually relevant and accurate movie matches*.  
 
 ---
 
-## 🛠️ Technologies & Libraries
-
-* 🐍 **Python**
-* 📓 **Jupyter Notebook**: For data exploration and model building.
-* 🐼 **Pandas**: For data manipulation.
-* 🤖 **Scikit-learn**: For `CountVectorizer` and `cosine_similarity`.
-* 📚 **NLTK**: For text stemming.
-* 🎈 **Streamlit**: For building the final interactive web application.
-* 🌐 **Requests**: For making API calls to TMDB.
+<img width="1919" height="976" alt="Screenshot 2025-08-26 222250" src="https://github.com/user-attachments/assets/b257cd94-956c-4a6c-9839-0c3aeb5a30e8" />
 
 ---
 
-## ⚙️ Setup and Usage
+<img width="1919" height="992" alt="Screenshot 2025-08-26 222111" src="https://github.com/user-attachments/assets/29fb0234-5b0d-4803-9228-9168d0136e77" />
+  
+---
 
-This project has two main parts: running the notebook to generate the model files, and running the Streamlit app.
+## 🧠 The Recommendation Pipeline  
 
- ### Part 1: Generating the Model Files
+The system follows a classic NLP-based pipeline:  
 
-1.  **Prerequisites:**
-    * You need Python, Jupyter Notebook, and the TMDB 5000 dataset CSV files (`tmdb_5000_movies.csv` and `tmdb_5000_credits.csv`) placed in the project's root folder.
+1. *Feature Engineering*  
+   - Data from TMDB 5000 dataset is cleaned and merged.  
+   - Metadata and synopsis are combined into a single *“tag”* for each movie.  
 
-2.  **Clone the repository and install libraries:**
-    ```bash
-    git clone [https://github.com/your-username/CineMatch-App.git](https://github.com/your-username/CineMatch-App.git)
-    cd CineMatch-App
-    pip install -r requirements.txt
-    ```
+2. *Text Vectorization*  
+   - Tags are normalized (lowercasing + stemming).  
+   - Converted to numerical vectors using CountVectorizer.  
 
-3.  **Run the Jupyter Notebook:**
-    * Launch Jupyter Notebook: `jupyter notebook`
-    * Open `Movie Recommendation System.ipynb`.
-    * Run all the cells from top to bottom. This will perform all the data processing and create the necessary `.pkl` files in your project directory.
+3. *Similarity Modeling*  
+   - A *cosine similarity matrix* computes relationships between all movies.  
+   - The model is saved as .pkl files for use in the Streamlit app.  
 
-### Part 2: Running the Streamlit App
+---
 
-After generating the `.pkl` files, you can run the interactive web app.
+## ✨ Features of the Streamlit App  
 
-1.  **Set up your API Key:**
-    * Create a folder named `.streamlit` in the root of your project directory.
-    * Inside, create a file named `secrets.toml`.
-    * Add your TMDB API key to this file:
-        ```toml
-        TMDB_API_KEY = "your_actual_api_key_here"
-        ```
+* 🧠 *Personalized Recommendations* – Get instant, relevant movie suggestions.  
+* 🔥 *Top Picks Section* – Discover trending and popular films.  
+* 🔎 *Search Functionality* – Find movies by title.  
+* ℹ *Detailed Movie Pages* – Access poster, cast, overview, and more.  
+* 📄 *Paginated Results* – Browse large lists of films easily.  
+* 🔒 *Secure API Handling* – TMDB API key is stored in secrets.toml.  
 
-2.  **Run the application:**
-    ```bash
-    streamlit run app.py
-    ```
+
+<img width="1919" height="979" alt="Screenshot 2025-08-26 222339" src="https://github.com/user-attachments/assets/7a1678a5-61d2-4059-bb4d-8658bb2b7bd0" />
+
+---
+
+<img width="1919" height="988" alt="Screenshot 2025-08-26 222414" src="https://github.com/user-attachments/assets/936a32ce-89ea-42a8-bd8b-083120fc0ead" />
+
+---
+
+## 🛠 Built With  
+
+* 🐍 Python  
+* 📓 Jupyter Notebook – for data exploration & model building  
+* 🐼 Pandas – data manipulation  
+* 🤖 Scikit-learn – CountVectorizer, cosine_similarity  
+* 📚 NLTK – text preprocessing  
+* 🎈 Streamlit – web application  
+* 🌐 Requests – TMDB API calls  
+
+---
+
+## ⚙ Setup and Usage  
+
+This project has *two main parts*: generating the model and running the app.  
+
+### Part 1: Generate Model Files  
+
+1. Place the dataset files (tmdb_5000_movies.csv, tmdb_5000_credits.csv) in the root folder.  
+2. Run the Jupyter Notebook Movie Recommendation System.ipynb.  
+3. This will generate the .pkl files (saved in your project directory).  
+
+---
+
+### Part 2: Run the Streamlit App  
+
+1. *API Key Setup*  
+   - Create a folder named .streamlit in the project root.  
+   - Inside, create secrets.toml file:  
+     toml
+     TMDB_API_KEY = "your_actual_api_key_here"
+       
+
+2. *Run the App*  
+   ```bash
+   streamlit run app.py
+
+
