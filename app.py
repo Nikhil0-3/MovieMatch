@@ -3,10 +3,8 @@ import streamlit as st
 import requests
 import pandas as pd
 import math
-import urllib.parse
 
-# --- FIX 1: st.set_page_config() must be the first Streamlit command ---
-# Page configuration
+# --- Page Configuration (Must be the first Streamlit command) ---
 st.set_page_config(
     page_title="🎬 CineMatch - Movie Recommendation System",
     layout="wide",
@@ -14,6 +12,7 @@ st.set_page_config(
 )
 
 # --- Session State Initialization ---
+# Ensures the app has a default state when it first loads.
 if 'view' not in st.session_state:
     st.session_state.view = 'home'
 if 'selected_movie' not in st.session_state:
@@ -38,25 +37,21 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
-    /* --- Base & Background --- */
+    /* Base & Background */
     .stApp {
         background-color: #000;
         color: #ffffff;
         font-family: 'Poppins', sans-serif;
     }
 
-    /* --- Aurora Background Animation --- */
+    /* Aurora Background Animation */
     .aurora-container {
-        position: fixed;
-        top: 0; left: 0; width: 100vw; height: 100vh;
-        z-index: -1;
-        pointer-events: none;
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        z-index: -1; pointer-events: none;
     }
     .aurora {
-        position: absolute;
-        border-radius: 50%;
-        mix-blend-mode: screen;
-        animation: aurora-anim 12s infinite linear;
+        position: absolute; border-radius: 50%;
+        mix-blend-mode: screen; animation: aurora-anim 12s infinite linear;
     }
     @keyframes aurora-anim {
         0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
@@ -67,76 +62,40 @@ st.markdown("""
     .aurora-2 { width: 60vmax; height: 60vmax; top: 20%; left: 20%; background: radial-gradient(circle, #8f94fb 0%, rgba(143, 148, 251, 0) 70%); animation-duration: 12s; animation-direction: reverse; }
     .aurora-3 { width: 70vmax; height: 70vmax; top: 80%; left: 80%; background: radial-gradient(circle, #4e54c8 0%, rgba(78, 84, 200, 0) 70%); animation-duration: 18s; }
 
-    .starfall-container {
-        pointer-events:none;
-        position:fixed;
-        top:0;
-        left:0;
-        width:100vw;
-        height:120px;
-        z-index:100;
-    }
-    .star {
-        position:absolute;
-        border-radius:50%;
-        opacity:0.7;
-        width:8px;
-        height:8px;
-        animation: fall 3s linear infinite;
-    }
-    .star.s1 { left: 5vw; animation-duration: 1.3s; background: #ffd700;}
-    .star.s2 { left: 15vw; animation-duration: 2.0s; background: #4a90e2;}
-    .star.s3 { left: 25vw; animation-duration: 2.7s; background: #ff69b4;}
-    .star.s4 { left: 35vw; animation-duration: 2.2s; background: #43c6ac;}
-    .star.s5 { left: 45vw; animation-duration: 2.8s; background: #fff;}
-    .star.s6 { left: 55vw; animation-duration: 2.4s; background: #ffd700;}
-    .star.s7 { left: 65vw; animation-duration: 2.0s; background: #4a90e2;}
-    .star.s8 { left: 75vw; animation-duration: 1.9s; background: #ff69b4;}
-    .star.s9 { left: 85vw; animation-duration: 2.2s; background: #43c6ac;}
-    .star.s10 { left: 95vw; animation-duration: 1.8s; background: #fff;}
-    @keyframes fall {
-        0% { top: 0; opacity: 0.8;}
-        80% { opacity: 0.8;}
-        100% { top: 110px; opacity: 0;}
-    }
-            
-    /* --- Buttons & Interactive Elements --- */
+    /* Buttons & Interactive Elements */
     .stButton > button {
         border-radius: 8px; border: 1px solid #00f2ea;
         background-color: transparent; color: #00f2ea;
-        transition: all 0.3s ease-in-out;
-        padding: 0.5rem 1rem;
+        transition: all 0.3s ease-in-out; padding: 0.5rem 1rem;
     }
     .stButton > button:hover {
         background-color: #00f2ea; color: #1a1a2e;
         border-color: #00f2ea; box-shadow: 0 0 15px #00f2ea;
     }
-    .nav-btn {
-        background: rgba(0,0,0,0.3); backdrop-filter: blur(5px);
-        color: white !important; text-decoration: none; border-radius: 10px;
-        padding: 0.5rem 1.5rem; font-weight: 600; cursor: pointer;
-        z-index: 2000; border: 1px solid rgba(255,25,255,0.2);
-        transition: all 0.2s ease-in-out;
-    }
-    .nav-btn:hover {
-        background: rgba(0, 242, 234, 0.8);
-        box-shadow: 0 0 15px #00f2ea;
-        color: #0f0c29 !important;
-    }
-    .home-btn {  top: 60px; left: 200px; }
-    .back-btn { display: inline-block; margin-bottom: 1rem; }
 
-    /* --- Movie Cards --- */
+    /* Movie Cards (with invisible button overlay) */
+    .card-container {
+        position: relative; 
+        min-height: 400px;
+    }
     .movie-card {
         background: rgba(255, 255, 255, 0.05);
-        border-radius: 15px; padding: 1rem; margin: 10px 0;
+        border-radius: 15px; padding: 1rem; margin-top: 10px;
         transition: all 0.3s ease; border: 1px solid transparent;
-        min-height: 400px; backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
     }
-    a:hover .movie-card {
+    .card-container:hover .movie-card {
         transform: translateY(-8px);
         box-shadow: 0 10px 20px rgba(0,0,0,0.4);
         border-color: #00f2ea;
+    }
+    /* This makes the button cover the entire card area */
+    .card-container .stButton {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    }
+    .card-container .stButton > button {
+        width: 100%; height: 100%;
+        background-color: transparent; border: none; color: transparent;
     }
     .movie-poster {
         border-radius: 10px; width: 100%; height: 250px;
@@ -147,19 +106,20 @@ st.markdown("""
         text-align: center; height: 3.3em; overflow: hidden;
     }
 
-    /* --- Headers & Layout --- */
+    /* Headers & Layout */
     .main-header {
         font-size: 3.5rem; text-align: center;
         background: linear-gradient(45deg, #8f94fb, #00f2ea);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        padding-top: 5rem; font-weight: 700;
+        padding-top: 2rem; font-weight: 700;
+        margin-bottom: 2rem;
     }
     .sidebar-header {
         font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center;
         padding: 10px; background: rgba(0, 242, 234, 0.1); border-radius: 10px;
     }
 
-    /* --- Details Page --- */
+    /* Details Page */
     .details-container {
         position: relative;
         background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);
@@ -175,7 +135,7 @@ st.markdown("""
         transform: scale(1.2);
     }
 
-    /* --- Footer --- */
+    /* Footer */
     .footer {
         text-align:center; padding:2rem; margin-top:3rem; color:#cccccc;
         border-top: 1px solid #4e54c8;
@@ -186,13 +146,6 @@ st.markdown("""
     <div class="aurora aurora-1"></div>
     <div class="aurora aurora-2"></div>
     <div class="aurora aurora-3"></div>
-</div>
-<div class="starfall-container">
-    <div class="star s1"></div> <div class="star s2"></div>
-    <div class="star s3"></div> <div class="star s4"></div>
-    <div class="star s5"></div> <div class="star s6"></div>
-    <div class="star s7"></div> <div class="star s8"></div>
-    <div class="star s9"></div> <div class="star s10"></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -269,26 +222,54 @@ def filter_movies_from_state():
 def get_top_movies(n=50, sort_by='weighted_rating'):
     return movies.sort_values(by=sort_by, ascending=False).head(n)
 
+# --- Navigation and Action Callbacks ---
+def set_view(view_name):
+    st.session_state.view = view_name
+    st.session_state.current_page = 1
+
+def handle_movie_click(movie_title):
+    st.session_state.previous_view = st.session_state.view
+    st.session_state.previous_page = st.session_state.current_page
+    st.session_state.view = 'details'
+    st.session_state.selected_movie = movie_title
+
+def go_back():
+    st.session_state.view = st.session_state.previous_view
+    st.session_state.current_page = st.session_state.previous_page
+    st.session_state.selected_movie = None
+
+def apply_filters():
+    with st.spinner('Filtering movies...'):
+        st.session_state.filtered_movies = filter_movies_from_state()
+    set_view('filtered_results')
+
+def show_top_movies():
+    st.session_state.top_movies = get_top_movies()
+    set_view('top_movies')
+
+def next_page(): st.session_state.current_page += 1
+def prev_page(): st.session_state.current_page -= 1
+
 # --- UI Display Functions ---
 def display_movie_cards(movie_titles):
     cols = st.columns(5)
     for i, title in enumerate(movie_titles):
         with cols[i % 5]:
-            encoded_title = urllib.parse.quote_plus(title)
-            prev_view = st.session_state.get('view', 'home')
-            prev_page = st.session_state.get('current_page', 1)
-
-            st.markdown(f"""
-            <a href="?movie={encoded_title}&prev_view={prev_view}&prev_page={prev_page}" target="_self" style="text-decoration: none;">
-                <div class="movie-card">
-                    <img class="movie-poster" src="{fetch_poster(title)}">
-                    <div class="movie-title">{title}</div>
-                </div>
-            </a>
-            """, unsafe_allow_html=True)
+            with st.container():
+                st.markdown(f'<div class="card-container">', unsafe_allow_html=True)
+                st.markdown(f"""
+                    <div class="movie-card">
+                        <img class="movie-poster" src="{fetch_poster(title)}">
+                        <div class="movie-title">{title}</div>
+                    </div>
+                """, unsafe_allow_html=True)
+                # This invisible button handles clicks reliably
+                st.button("select", key=f"btn_{title}", on_click=handle_movie_click, args=(title,))
+                st.markdown('</div>', unsafe_allow_html=True)
 
 # --- Sidebar ---
 with st.sidebar:
+    st.button("🏠 Home", on_click=set_view, args=('home',), use_container_width=True, key='home_btn_sidebar')
     st.markdown("<h2 class='sidebar-header'>🔎 Filter Movies</h2>", unsafe_allow_html=True)
     
     st.selectbox("Genre", ["-- Select Genre --"] + genres, key='filter_genre')
@@ -297,29 +278,18 @@ with st.sidebar:
     if 'year' in movies.columns:
         year_min, year_max = int(movies['year'].min()), int(movies['year'].max())
         st.slider("Year Range", year_min, year_max, (year_min, year_max), key='filter_years')
-    else: 
-        st.session_state.filter_years = None
+    
     st.slider("Minimum Rating", 0.0, 10.0, 0.0, step=0.5, key='filter_rating')
     st.selectbox("Sort By", ["popularity", 'release_date', 'vote_average', 'weighted_rating'], key='filter_sort_by')
-
-    if st.button("Apply Filters"):
-        st.session_state.filtered_movies = filter_movies_from_state()
-        st.session_state.view = 'filtered_results'
-        st.session_state.current_page = 1
-        st.rerun()
+    
+    st.button("Apply Filters", on_click=apply_filters, use_container_width=True)
 
     st.markdown("<h2 class='sidebar-header'>🏆 Top Movies</h2>", unsafe_allow_html=True)
     st.write("")
-    if st.button("Show Top Movies"):
-        st.session_state.top_movies = get_top_movies()
-        st.session_state.view = 'top_movies'
-        st.session_state.current_page = 1
-        st.rerun()
+    st.button("Show Top Movies", on_click=show_top_movies, use_container_width=True)
 
 # --- Main Page Content ---
-st.markdown("<a href='/' target='_self' class='nav-btn home-btn'>🏠 Home</a>", unsafe_allow_html=True)
 st.markdown("<h1 class='main-header'>🎬 CineMatch</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Your Ultimate Movie Recommendation System</p>", unsafe_allow_html=True)
 
 # --- Page Display Logic ---
 if st.session_state.view == 'home':
@@ -359,28 +329,18 @@ elif st.session_state.view in ['top_movies', 'filtered_results']:
         display_movie_cards(paginated_titles)
         st.write("")
         c1, c2, c3 = st.columns([3, 1, 3])
-        if c1.button("⬅️ Previous", use_container_width=True, disabled=(page <= 1)):
-            st.session_state.current_page -= 1
-            st.rerun()
+        c1.button("⬅️ Previous", on_click=prev_page, use_container_width=True, disabled=(page <= 1))
         c2.markdown(f"<div style='text-align: center; margin-top: 0.5rem;'>Page {page} of {total_pages}</div>", unsafe_allow_html=True)
-        if c3.button("Next ➡️", use_container_width=True, disabled=(page >= total_pages)):
-            st.session_state.current_page += 1
-            st.rerun()
+        c3.button("Next ➡️", on_click=next_page, use_container_width=True, disabled=(page >= total_pages))
     else: 
         st.warning("No movies to display. Please apply a filter or select 'Top Movies'.")
 
 elif st.session_state.view == 'details':
-    # --- FIX 2: Decode the movie title passed in the URL ---
-    # This was a bug in the old query_params logic, but good practice to keep
     decoded_movie_title = urllib.parse.unquote_plus(st.session_state.selected_movie)
     details = fetch_movie_details(decoded_movie_title)
     
     if details:
-        # We use a button with a callback for reliable navigation
-        if st.button("⬅️ Back to List"):
-            st.session_state.view = st.session_state.previous_view
-            st.session_state.current_page = st.session_state.previous_page
-            st.rerun()
+        st.button("⬅️ Back to List", on_click=go_back)
 
         st.markdown(f"""
         <style> .details-container::before {{ --bg-image: url({details['poster']}); }} </style>
@@ -390,7 +350,6 @@ elif st.session_state.view == 'details':
             st.markdown('<div class="details-container">', unsafe_allow_html=True)
             col1, col2 = st.columns([1, 2])
             with col1:
-                # Corrected to use_column_width for older Streamlit versions
                 st.image(details['poster'], use_column_width=True)
             with col2:
                 st.title(details['title'])
@@ -404,9 +363,7 @@ elif st.session_state.view == 'details':
             st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.error("Could not load movie details.")
-        if st.button("⬅️ Back to Home"):
-            st.session_state.view = 'home'
-            st.rerun()
+        st.button("⬅️ Back to Home", on_click=go_back)
 
 # --- Footer ---
 st.markdown(
@@ -418,4 +375,3 @@ st.markdown(
     """, 
     unsafe_allow_html=True
 )
-
