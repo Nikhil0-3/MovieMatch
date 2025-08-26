@@ -5,7 +5,7 @@ import pandas as pd
 import math
 import urllib.parse
 
-# Page configuration MUST be the first Streamlit command
+# Page configuration - must be the first Streamlit command
 st.set_page_config(
     page_title="🎬 CineMatch - Movie Recommendation System",
     layout="wide",
@@ -23,6 +23,12 @@ if 'previous_view' not in st.session_state:
     st.session_state.previous_view = 'home'
 if 'previous_page' not in st.session_state:
     st.session_state.previous_page = 1
+if 'recommendations' not in st.session_state:
+    st.session_state.recommendations = []
+if 'selected_for_rec' not in st.session_state:
+    st.session_state.selected_for_rec = ""
+if 'top_movies' not in st.session_state:
+    st.session_state.top_movies = None
 
 # --- Enhanced CSS with Aurora Animation and Professional UI ---
 st.markdown("""
@@ -294,31 +300,36 @@ with st.sidebar:
     st.selectbox("Sort By", ["popularity", 'release_date', 'vote_average', 'weighted_rating'], key='filter_sort_by')
 
     if st.button("Apply Filters"):
-        st.experimental_set_query_params(view='filtered_results', page="1")
+        st.session_state.view = 'filtered_results'
+        st.session_state.current_page = 1
 
     st.markdown("<h2 class='sidebar-header'>🏆 Top Movies</h2>", unsafe_allow_html=True)
     st.write("")
     if st.button("Show Top Movies"):
         st.session_state.top_movies = get_top_movies()
-        st.experimental_set_query_params(view='top_movies', page="1")
+        st.session_state.view = 'top_movies'
+        st.session_state.current_page = 1
 
 # --- Main Page Content ---
 st.markdown("<a href='/?view=home' target='_self' class='nav-btn home-btn'>🏠 Home</a>", unsafe_allow_html=True)
-st.markdown("<h1 class='main-header'>🎬 CineMatch</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Your Ultimate Movie Recommendation System</p>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-header'>🎬 CineMatch - Movie Recommendation System</h1>", unsafe_allow_html=True)
 
 # --- View Routing Logic ---
-# **CORRECTION**: Using the older, backward-compatible function
+# Use experimental_get_query_params for Streamlit < 1.27.0
 params = st.experimental_get_query_params()
-# The .get() method on the old query params returns a list, so we get the first item [0]
-st.session_state.view = params.get('view', ['home'])[0]
-st.session_state.current_page = int(params.get('page', [1])[0])
 
+# Update session state from query parameters if they exist
+if 'view' in params:
+    st.session_state.view = params['view'][0]
+if 'page' in params:
+    st.session_state.current_page = int(params['page'][0])
 if 'movie' in params:
     st.session_state.view = 'details'
     st.session_state.selected_movie = params['movie'][0]
-    st.session_state.previous_view = params.get('prev_view', ['home'])[0]
-    st.session_state.previous_page = int(params.get('prev_page', [1])[0])
+    if 'prev_view' in params:
+        st.session_state.previous_view = params['prev_view'][0]
+    if 'prev_page' in params:
+        st.session_state.previous_page = int(params['prev_page'][0])
 
 # --- Page Display Logic ---
 if st.session_state.view == 'home':
@@ -328,7 +339,7 @@ if st.session_state.view == 'home':
         st.session_state.recommendations = recommend(selected_movie_name)
         st.session_state.selected_for_rec = selected_movie_name
     
-    if 'recommendations' in st.session_state and st.session_state.recommendations:
+    if st.session_state.recommendations:
         st.subheader(f"Because you liked '{st.session_state.selected_for_rec}':")
         display_movie_cards(st.session_state.recommendations)
     
@@ -352,10 +363,12 @@ elif st.session_state.view == 'top_movies':
         st.write("")
         c1, c2, c3 = st.columns([3, 1, 3])
         if c1.button("⬅️ Previous", use_container_width=True, disabled=(page <= 1)):
-            st.experimental_set_query_params(page=str(page - 1))
+            st.session_state.current_page = page - 1
+            st.experimental_set_query_params(view='top_movies', page=str(st.session_state.current_page))
         c2.markdown(f"<div style='text-align: center; margin-top: 0.5rem;'>Page {page} of {total_pages}</div>", unsafe_allow_html=True)
         if c3.button("Next ➡️", use_container_width=True, disabled=(page >= total_pages)):
-            st.experimental_set_query_params(page=str(page + 1))
+            st.session_state.current_page = page + 1
+            st.experimental_set_query_params(view='top_movies', page=str(st.session_state.current_page))
 
 elif st.session_state.view == 'filtered_results':
     st.header("Filtered Movie Results")
@@ -375,21 +388,30 @@ elif st.session_state.view == 'filtered_results':
         st.write("")
         c1, c2, c3 = st.columns([3, 1, 3])
         if c1.button("⬅️ Previous", use_container_width=True, disabled=(page <= 1)):
-            st.experimental_set_query_params(page=str(page - 1))
+            st.session_state.current_page = page - 1
+            st.experimental_set_query_params(view='filtered_results', page=str(st.session_state.current_page))
         c2.markdown(f"<div style='text-align: center; margin-top: 0.5rem;'>Page {page} of {total_pages}</div>", unsafe_allow_html=True)
         if c3.button("Next ➡️", use_container_width=True, disabled=(page >= total_pages)):
-            st.experimental_set_query_params(page=str(page + 1))
+            st.session_state.current_page = page + 1
+            st.experimental_set_query_params(view='filtered_results', page=str(st.session_state.current_page))
     else:
         st.warning("No movies found with the current filters. Please try different options.")
 
 elif st.session_state.view == 'details':
+    # Decode the movie title from the URL
     decoded_movie_title = urllib.parse.unquote_plus(st.session_state.selected_movie)
     details = fetch_movie_details(decoded_movie_title)
     
     if details:
         back_view = st.session_state.get('previous_view', 'home')
         back_page = st.session_state.get('previous_page', 1)
-        st.markdown(f"<a href='/?view={back_view}&page={back_page}' target='_self' class='nav-btn back-btn'>⬅️ Back to List</a>", unsafe_allow_html=True)
+        
+        # Use a button with callback to navigate back
+        if st.button("⬅️ Back to List", key="back_button"):
+            st.session_state.view = back_view
+            st.session_state.current_page = back_page
+            st.experimental_set_query_params(view=back_view, page=str(back_page))
+            st.rerun()
 
         st.markdown(f"<style> .details-container::before {{ --bg-image: url({details['poster']}); }} </style>", unsafe_allow_html=True)
 
@@ -397,7 +419,8 @@ elif st.session_state.view == 'details':
             st.markdown('<div class="details-container">', unsafe_allow_html=True)
             col1, col2 = st.columns([1, 2])
             with col1:
-                st.image(details['poster'], use_container_width=True)
+                # FIXED: Changed use_container_width to use_column_width
+                st.image(details['poster'], use_column_width=True)
             with col2:
                 st.title(details['title'])
                 st.markdown(f"**Rating:** ⭐ {details['vote_average']:.1f}/10")
@@ -410,13 +433,16 @@ elif st.session_state.view == 'details':
             st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.error("Could not load movie details.")
-        st.markdown(f"<a href='/?view=home' target='_self' class='nav-btn back-btn'>⬅️ Back to Home</a>", unsafe_allow_html=True)
+        if st.button("⬅️ Back to Home"):
+            st.session_state.view = 'home'
+            st.experimental_set_query_params(view='home')
+            st.rerun()
 
 # --- Footer ---
 st.markdown(
     """
     <div class="footer">
-        <p>Nikhil More | nikhil.030304@gmail.com</p>
+        <p>Nikhil More | nikhil030304@gmail.com</p>
         <p>CineMatch © 2025</p>
     </div>
     """, 
