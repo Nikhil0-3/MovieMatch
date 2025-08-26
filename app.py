@@ -1,4 +1,3 @@
-
 import pickle
 import streamlit as st
 import requests
@@ -6,32 +5,12 @@ import pandas as pd
 import math
 import urllib.parse
 
-# Page configuration - must be the first Streamlit command
+# Page configuration
 st.set_page_config(
     page_title="🎬 CineMatch - Movie Recommendation System",
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# --- Session State Initialization ---
-if 'view' not in st.session_state:
-    st.session_state.view = 'home'
-if 'selected_movie' not in st.session_state:
-    st.session_state.selected_movie = None
-if 'current_page' not in st.session_state:
-    st.session_state.current_page = 1
-if 'previous_view' not in st.session_state:
-    st.session_state.previous_view = 'home'
-if 'previous_page' not in st.session_state:
-    st.session_state.previous_page = 1
-if 'recommendations' not in st.session_state:
-    st.session_state.recommendations = []
-if 'selected_for_rec' not in st.session_state:
-    st.session_state.selected_for_rec = ""
-if 'top_movies' not in st.session_state:
-    st.session_state.top_movies = None
-if 'filtered_movies' not in st.session_state:
-    st.session_state.filtered_movies = None
 
 # --- Enhanced CSS with Aurora Animation and Professional UI ---
 st.markdown("""
@@ -99,7 +78,7 @@ st.markdown("""
         80% { opacity: 0.8;}
         100% { top: 110px; opacity: 0;}
     }
-            
+
     /* --- Buttons & Interactive Elements --- */
     .stButton > button {
         border-radius: 8px; border: 1px solid #00f2ea;
@@ -115,7 +94,7 @@ st.markdown("""
         background: rgba(0,0,0,0.3); backdrop-filter: blur(5px);
         color: white !important; text-decoration: none; border-radius: 10px;
         padding: 0.5rem 1.5rem; font-weight: 600; cursor: pointer;
-        z-index: 2000; border: 1px solid rgba(255,255,255,0.2);
+        z-index: 2000; border: 1px solid rgba(255,25,255,0.2);
         transition: all 0.2s ease-in-out;
     }
     .nav-btn:hover {
@@ -123,7 +102,7 @@ st.markdown("""
         box-shadow: 0 0 15px #00f2ea;
         color: #0f0c29 !important;
     }
-    .home-btn { top: 20px; left: 20px; }
+    .home-btn {  top: 60px; left: 200px; }
     .back-btn { display: inline-block; margin-bottom: 1rem; }
 
     /* --- Movie Cards --- */
@@ -152,8 +131,7 @@ st.markdown("""
         font-size: 3.5rem; text-align: center;
         background: linear-gradient(45deg, #8f94fb, #00f2ea);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        padding-top: 2rem; font-weight: 700;
-        margin-bottom: 2rem;
+        padding-top: 5rem; font-weight: 700;
     }
     .sidebar-header {
         font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center;
@@ -205,24 +183,66 @@ def load_data():
     genres = pickle.load(open('genres.pkl', 'rb'))
     actors = pickle.load(open('actors.pkl', 'rb'))
     directors = pickle.load(open('directors.pkl', 'rb'))
+
     if 'year' not in movies.columns and 'release_date' in movies.columns:
         movies['year'] = pd.to_datetime(movies['release_date'], errors='coerce').dt.year
+
     return movies, similarity, genres, actors, directors
 
 movies, similarity, genres, actors, directors = load_data()
+
+# --- Session State Initialization ---
+if 'view' not in st.session_state:
+    st.session_state.view = 'home'
+if 'selected_movie' not in st.session_state:
+    st.session_state.selected_movie = None
+if 'current_page' not in st.session_state:
+    st.session_state.current_page = 1
+if 'previous_view' not in st.session_state:
+    st.session_state.previous_view = 'home'
+if 'previous_page' not in st.session_state:
+    st.session_state.previous_page = 1
+if 'recommendations' not in st.session_state:
+    st.session_state.recommendations = []
+if 'selected_for_rec' not in st.session_state:
+    st.session_state.selected_for_rec = ""
+if 'top_movies' not in st.session_state:
+    st.session_state.top_movies = None
+
+# --- Query Parameters Helper Functions (Version Compatible) ---
+def get_query_params():
+    """Get query parameters in a version-compatible way"""
+    try:
+        # Try new API first (Streamlit 1.30.0+)
+        return dict(st.query_params)
+    except (AttributeError, TypeError):
+        # Fall back to old API
+        return st.experimental_get_query_params()
+
+def set_query_params(**kwargs):
+    """Set query parameters in a version-compatible way"""
+    try:
+        # Try new API first (Streamlit 1.30.0+)
+        for key, value in kwargs.items():
+            st.query_params[key] = str(value)
+    except (AttributeError, TypeError):
+        # Fall back to old API
+        st.experimental_set_query_params(**kwargs)
 
 # --- API & Helper Functions ---
 @st.cache_data
 def fetch_poster(movie_title):
     try:
-        api_key = st.secrets["TMDB_API_KEY"]
         movie_id = movies[movies['title'] == movie_title]['movie_id'].values[0]
+        # Securely get the API key from Streamlit's secrets manager
+        api_key = st.secrets["TMDB_API_KEY"]
         url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}&language=en-US"
         data = requests.get(url).json()
         poster_path = data.get('poster_path')
         if poster_path:
             return "https://image.tmdb.org/t/p/w500/" + poster_path
-    except Exception: pass
+    except Exception:
+        pass
     return "https://via.placeholder.com/500x750?text=Poster+Not+Available"
 
 def fetch_movie_details(movie_title):
@@ -230,7 +250,11 @@ def fetch_movie_details(movie_title):
         movie_data = movies[movies['title'] == movie_title].iloc[0]
         return {
             'title': movie_data['title'],
-            'overview': " ".join(movie_data.get('overview', [])) if isinstance(movie_data.get('overview'), list) else movie_data.get('overview', 'No overview available.'),
+            'overview': (
+                " ".join(movie_data.get('overview', []))
+                if isinstance(movie_data.get('overview'), list)
+                else movie_data.get('overview', 'No overview available.')
+            ),
             'release_date': movie_data.get('release_date', 'N/A'),
             'runtime': movie_data.get('runtime', 'N/A'),
             'vote_average': movie_data.get('vote_average', 0),
@@ -239,16 +263,23 @@ def fetch_movie_details(movie_title):
             'directors': movie_data.get('director_flat', []),
             'poster': fetch_poster(movie_title)
         }
-    except IndexError: return None
+    except IndexError:
+        return None
 
 def recommend(movie):
     try:
         movie_index = movies[movies['title'] == movie].index[0]
         distances = similarity[movie_index]
-        movies_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
+        movies_list = sorted(
+            list(enumerate(distances)),
+            reverse=True,
+            key=lambda x: x[1]
+        )[1:6]
         return [movies.iloc[i[0]].title for i in movies_list]
-    except Exception: return []
+    except Exception:
+        return []
 
+# --- Filter function with improved error handling ---
 def filter_movies_from_state():
     df = movies.copy()
     genre = st.session_state.get('filter_genre', '-- Select Genre --')
@@ -258,18 +289,19 @@ def filter_movies_from_state():
     rating = st.session_state.get('filter_rating', 0.0)
     sort_by = st.session_state.get('filter_sort_by', 'popularity')
 
-    if genre != "-- Select Genre --": 
+    if genre != "-- Select Genre --":
         df = df[df['genres_flat'].apply(lambda x: genre in x if isinstance(x, list) else False)]
-    if actor != "-- Select Actor --": 
+    if actor != "-- Select Actor --":
         df = df[df['cast_flat'].apply(lambda x: actor in x if isinstance(x, list) else False)]
-    if director != "-- Select Director --": 
+    if director != "-- Select Director --":
         df = df[df['director_flat'].apply(lambda x: director in x if isinstance(x, list) else False)]
-    if years and 'year' in df.columns: 
+    if years and 'year' in df.columns:
         df = df[(df['year'] >= years[0]) & (df['year'] <= years[1])]
-    if rating > 0: 
+    if rating > 0:
         df = df[df['vote_average'] >= rating]
-    if sort_by: 
+    if sort_by:
         df = df.sort_values(by=sort_by, ascending=False)
+
     return df
 
 @st.cache_data
@@ -284,7 +316,6 @@ def display_movie_cards(movie_titles):
             encoded_title = urllib.parse.quote_plus(title)
             prev_view = st.session_state.get('view', 'home')
             prev_page = st.session_state.get('current_page', 1)
-
             st.markdown(f"""
             <a href="?movie={encoded_title}&prev_view={prev_view}&prev_page={prev_page}" target="_self" style="text-decoration: none;">
                 <div class="movie-card">
@@ -297,52 +328,47 @@ def display_movie_cards(movie_titles):
 # --- Sidebar ---
 with st.sidebar:
     st.markdown("<h2 class='sidebar-header'>🔎 Filter Movies</h2>", unsafe_allow_html=True)
-    
     st.selectbox("Genre", ["-- Select Genre --"] + genres, key='filter_genre')
     st.selectbox("Actor", ["-- Select Actor --"] + actors, key='filter_actor')
     st.selectbox("Director", ["-- Select Director --"] + directors, key='filter_director')
     if 'year' in movies.columns:
         year_min, year_max = int(movies['year'].min()), int(movies['year'].max())
         st.slider("Year Range", year_min, year_max, (year_min, year_max), key='filter_years')
-    else: 
+    else:
         st.session_state.filter_years = None
     st.slider("Minimum Rating", 0.0, 10.0, 0.0, step=0.5, key='filter_rating')
     st.selectbox("Sort By", ["popularity", 'release_date', 'vote_average', 'weighted_rating'], key='filter_sort_by')
 
     if st.button("Apply Filters"):
-        st.session_state.filtered_movies = filter_movies_from_state()
-        st.session_state.view = 'filtered_results'
-        st.session_state.current_page = 1
+        set_query_params(view='filtered_results', page="1")
         st.rerun()
 
     st.markdown("<h2 class='sidebar-header'>🏆 Top Movies</h2>", unsafe_allow_html=True)
-    st.write("")
     if st.button("Show Top Movies"):
         st.session_state.top_movies = get_top_movies()
-        st.session_state.view = 'top_movies'
-        st.session_state.current_page = 1
+        set_query_params(view='top_movies', page="1")
         st.rerun()
 
 # --- Main Page Content ---
 st.markdown("<a href='/?view=home' target='_self' class='nav-btn home-btn'>🏠 Home</a>", unsafe_allow_html=True)
-st.markdown("<h1 class='main-header'>🎬 CineMatch - Movie Recommendation System</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-header'>🎬 CineMatch</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Your Ultimate Movie Recommendation System</p>", unsafe_allow_html=True)
 
 # --- View Routing Logic ---
-# Use experimental_get_query_params for Streamlit < 1.27.0
-params = st.experimental_get_query_params()
+params = get_query_params()
+st.session_state.view = params.get('view', ['home'])[0] if isinstance(params.get('view'), list) else params.get('view', 'home')
+st.session_state.current_page = int(params.get('page', ['1'])[0] if isinstance(params.get('page'), list) else params.get('page', 1))
 
-# Update session state from query parameters if they exist
-if 'view' in params:
-    st.session_state.view = params['view'][0]
-if 'page' in params:
-    st.session_state.current_page = int(params['page'][0])
 if 'movie' in params:
     st.session_state.view = 'details'
-    st.session_state.selected_movie = params['movie'][0]
-    if 'prev_view' in params:
-        st.session_state.previous_view = params['prev_view'][0]
-    if 'prev_page' in params:
-        st.session_state.previous_page = int(params['prev_page'][0])
+    movie_param = params['movie']
+    st.session_state.selected_movie = movie_param[0] if isinstance(movie_param, list) else movie_param
+    
+    prev_view_param = params.get('prev_view', 'home')
+    st.session_state.previous_view = prev_view_param[0] if isinstance(prev_view_param, list) else prev_view_param
+    
+    prev_page_param = params.get('prev_page', 1)
+    st.session_state.previous_page = int(prev_page_param[0] if isinstance(prev_page_param, list) else prev_page_param)
 
 # --- Page Display Logic ---
 if st.session_state.view == 'home':
@@ -352,11 +378,11 @@ if st.session_state.view == 'home':
         st.session_state.recommendations = recommend(selected_movie_name)
         st.session_state.selected_for_rec = selected_movie_name
         st.rerun()
-    
+
     if st.session_state.recommendations:
         st.subheader(f"Because you liked '{st.session_state.selected_for_rec}':")
         display_movie_cards(st.session_state.recommendations)
-    
+
     st.markdown("---")
     st.subheader("🔥 Top Picks For Today")
     top_picks = get_top_movies(n=5)
@@ -365,35 +391,32 @@ if st.session_state.view == 'home':
 elif st.session_state.view == 'top_movies':
     st.header("Top Rated Movies")
     movie_df = st.session_state.get('top_movies', get_top_movies())
-    if movie_df is not None and not movie_df.empty:
+    if not movie_df.empty:
         MOVIES_PER_PAGE = 10
         total_pages = math.ceil(len(movie_df) / MOVIES_PER_PAGE)
         page = st.session_state.current_page
         start_idx = (page - 1) * MOVIES_PER_PAGE
         end_idx = start_idx + MOVIES_PER_PAGE
         paginated_titles = movie_df['title'].iloc[start_idx:end_idx].tolist()
-        
+
         display_movie_cards(paginated_titles)
-        st.write("")
         c1, c2, c3 = st.columns([3, 1, 3])
         if c1.button("⬅️ Previous", use_container_width=True, disabled=(page <= 1)):
-            st.session_state.current_page = page - 1
-            st.experimental_set_query_params(view='top_movies', page=str(st.session_state.current_page))
+            set_query_params(view='top_movies', page=str(page - 1))
             st.rerun()
-        c2.markdown(f"<div style='text-align: center; margin-top: 0.5rem;'>Page {page} of {total_pages}</div>", unsafe_allow_html=True)
+        c2.markdown(
+            f"<div style='text-align: center; margin-top: 0.5rem;'>Page {page} of {total_pages}</div>",
+            unsafe_allow_html=True
+        )
         if c3.button("Next ➡️", use_container_width=True, disabled=(page >= total_pages)):
-            st.session_state.current_page = page + 1
-            st.experimental_set_query_params(view='top_movies', page=str(st.session_state.current_page))
+            set_query_params(view='top_movies', page=str(page + 1))
             st.rerun()
 
 elif st.session_state.view == 'filtered_results':
     st.header("Filtered Movie Results")
-    
-    filtered_df = st.session_state.get('filtered_movies')
-    if filtered_df is None:
+    with st.spinner('Loading filtered movies...'):
         filtered_df = filter_movies_from_state()
-        st.session_state.filtered_movies = filtered_df
-    
+
     if not filtered_df.empty:
         MOVIES_PER_PAGE = 10
         total_pages = math.ceil(len(filtered_df) / MOVIES_PER_PAGE)
@@ -401,18 +424,18 @@ elif st.session_state.view == 'filtered_results':
         start_idx = (page - 1) * MOVIES_PER_PAGE
         end_idx = start_idx + MOVIES_PER_PAGE
         paginated_titles = filtered_df['title'].iloc[start_idx:end_idx].tolist()
-        
+
         display_movie_cards(paginated_titles)
-        st.write("")
         c1, c2, c3 = st.columns([3, 1, 3])
         if c1.button("⬅️ Previous", use_container_width=True, disabled=(page <= 1)):
-            st.session_state.current_page = page - 1
-            st.experimental_set_query_params(view='filtered_results', page=str(st.session_state.current_page))
+            set_query_params(view='filtered_results', page=str(page - 1))
             st.rerun()
-        c2.markdown(f"<div style='text-align: center; margin-top: 0.5rem;'>Page {page} of {total_pages}</div>", unsafe_allow_html=True)
+        c2.markdown(
+            f"<div style='text-align: center; margin-top: 0.5rem;'>Page {page} of {total_pages}</div>",
+            unsafe_allow_html=True
+        )
         if c3.button("Next ➡️", use_container_width=True, disabled=(page >= total_pages)):
-            st.session_state.current_page = page + 1
-            st.experimental_set_query_params(view='filtered_results', page=str(st.session_state.current_page))
+            set_query_params(view='filtered_results', page=str(page + 1))
             st.rerun()
     else:
         st.warning("No movies found with the current filters. Please try different options.")
@@ -426,25 +449,25 @@ elif st.session_state.view == 'details':
         back_view = st.session_state.get('previous_view', 'home')
         back_page = st.session_state.get('previous_page', 1)
         
-        # Use a button with callback to navigate back
         if st.button("⬅️ Back to List", key="back_button"):
-            st.session_state.view = back_view
-            st.session_state.current_page = back_page
-            st.experimental_set_query_params(view=back_view, page=str(back_page))
+            set_query_params(view=back_view, page=str(back_page))
             st.rerun()
 
-        st.markdown(f"<style> .details-container::before {{ --bg-image: url({details['poster']}); }} </style>", unsafe_allow_html=True)
+        st.markdown(
+            f"<style> .details-container::before {{ --bg-image: url({details['poster']}); }} </style>",
+            unsafe_allow_html=True
+        )
 
         with st.container():
             st.markdown('<div class="details-container">', unsafe_allow_html=True)
             col1, col2 = st.columns([1, 2])
             with col1:
-                # FIXED: Changed use_container_width to use_column_width
-                st.image(details['poster'], use_column_width=True)
+                st.image(details['poster'], use_container_width=True)
             with col2:
                 st.title(details['title'])
                 st.markdown(f"**Rating:** ⭐ {details['vote_average']:.1f}/10")
-                st.markdown(f"**Runtime:** {details['runtime']} minutes" if details['runtime'] != 'N/A' else "")
+                if details['runtime'] != 'N/A':
+                    st.markdown(f"**Runtime:** {details['runtime']} minutes")
                 st.markdown(f"**Genres:** {', '.join(details['genres'])}")
                 st.markdown(f"**Cast:** {', '.join(details['cast'])}")
                 st.markdown(f"**Director(s):** {', '.join(details['directors'])}")
@@ -454,17 +477,16 @@ elif st.session_state.view == 'details':
     else:
         st.error("Could not load movie details.")
         if st.button("⬅️ Back to Home"):
-            st.session_state.view = 'home'
-            st.experimental_set_query_params(view='home')
+            set_query_params(view='home')
             st.rerun()
 
 # --- Footer ---
 st.markdown(
     """
     <div class="footer">
-        <p>Nikhil More | nikhil030304@gmail.com</p>
+        <p>Nikhil More | nikhil.030304@gmail.com</p>
         <p>CineMatch © 2025</p>
     </div>
-    """, 
+    """,
     unsafe_allow_html=True
 )
