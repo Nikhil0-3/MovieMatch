@@ -5,12 +5,207 @@ import pandas as pd
 import math
 import urllib.parse
 
-# Page configuration - must be the first Streamlit command
+# Page configuration
 st.set_page_config(
     page_title="🎬 CineMatch - Movie Recommendation System",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# --- Enhanced CSS with Aurora Animation and Professional UI ---
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+    /* --- Base & Background --- */
+    html, body, .stApp {
+        background-color: #000 !important;
+        color: #ffffff !important;
+        font-family: 'Poppins', sans-serif !important;
+    }
+
+    /* --- Aurora Background Animation --- */
+    .aurora-container {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        z-index: -1;
+        pointer-events: none;
+    }
+    .aurora {
+        position: absolute;
+        border-radius: 50%;
+        mix-blend-mode: screen;
+        animation: aurora-anim 12s infinite linear;
+    }
+    @keyframes aurora-anim {
+        0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+        50% { transform: translate(50%, 50%) scale(1.5); opacity: 0.3; }
+        100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+    }
+    .aurora-1 { 
+        width: 80vmax; height: 80vmax; top: 50%; left: 50%; 
+        background: radial-gradient(circle, #00f2ea 0%, rgba(0, 242, 234, 0) 70%); 
+        animation-duration: 15s; 
+    }
+    .aurora-2 { 
+        width: 60vmax; height: 60vmax; top: 20%; left: 20%; 
+        background: radial-gradient(circle, #8f94fb 0%, rgba(143, 148, 251, 0) 70%); 
+        animation-duration: 12s; animation-direction: reverse; 
+    }
+    .aurora-3 { 
+        width: 70vmax; height: 70vmax; top: 80%; left: 80%; 
+        background: radial-gradient(circle, #4e54c8 0%, rgba(78, 84, 200, 0) 70%); 
+        animation-duration: 18s; 
+    }
+
+    .starfall-container {
+        pointer-events: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 120px;
+        z-index: 100;
+    }
+    .star {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.7;
+        width: 8px;
+        height: 8px;
+        animation: fall 3s linear infinite;
+    }
+    .star.s1 { left: 5vw; animation-duration: 1.3s; background: #ffd700;}
+    .star.s2 { left: 15vw; animation-duration: 2.0s; background: #4a90e2;}
+    .star.s3 { left: 25vw; animation-duration: 2.7s; background: #ff69b4;}
+    .star.s4 { left: 35vw; animation-duration: 2.2s; background: #43c6ac;}
+    .star.s5 { left: 45vw; animation-duration: 2.8s; background: #fff;}
+    .star.s6 { left: 55vw; animation-duration: 2.4s; background: #ffd700;}
+    .star.s7 { left: 65vw; animation-duration: 2.0s; background: #4a90e2;}
+    .star.s8 { left: 75vw; animation-duration: 1.9s; background: #ff69b4;}
+    .star.s9 { left: 85vw; animation-duration: 2.2s; background: #43c6ac;}
+    .star.s10 { left: 95vw; animation-duration: 1.8s; background: #fff;}
+    @keyframes fall {
+        0% { top: 0; opacity: 0.8;}
+        80% { opacity: 0.8;}
+        100% { top: 110px; opacity: 0;}
+    }
+
+    /* --- Buttons & Interactive Elements --- */
+    .stButton > button {
+        border-radius: 8px; border: 1px solid #00f2ea;
+        background-color: transparent; color: #00f2ea;
+        transition: all 0.3s ease-in-out;
+        padding: 0.5rem 1rem;
+    }
+    .stButton > button:hover {
+        background-color: #00f2ea; color: #1a1a2e;
+        border-color: #00f2ea; box-shadow: 0 0 15px #00f2ea;
+    }
+    .nav-btn {
+        background: rgba(0,0,0,0.3); backdrop-filter: blur(5px);
+        color: white !important; text-decoration: none; border-radius: 10px;
+        padding: 0.5rem 1.5rem; font-weight: 600; cursor: pointer;
+        z-index: 2000; border: 1px solid rgba(255,25,255,0.2);
+        transition: all 0.2s ease-in-out;
+        display: inline-block;
+    }
+    .nav-btn:hover {
+        background: rgba(0, 242, 234, 0.8);
+        box-shadow: 0 0 15px #00f2ea;
+        color: #0f0c29 !important;
+    }
+    .home-btn { top: 60px; left: 200px; }
+    .back-btn { display: inline-block; margin-bottom: 1rem; }
+
+    /* --- Movie Cards --- */
+    .movie-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px; padding: 1rem; margin: 10px 0;
+        transition: all 0.3s ease; border: 1px solid transparent;
+        min-height: 400px; backdrop-filter: blur(5px);
+        cursor: pointer;
+    }
+    .movie-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        border-color: #00f2ea;
+    }
+    .movie-poster {
+        border-radius: 10px; width: 100%; height: 250px;
+        object-fit: cover; margin-bottom: 1rem;
+    }
+    .movie-title {
+        font-weight: 600; font-size: 1.1rem; color: #ffffff;
+        text-align: center; height: 3.3em; overflow: hidden;
+    }
+
+    /* --- Headers & Layout --- */
+    .main-header {
+        font-size: 3.5rem; text-align: center;
+        background: linear-gradient(45deg, #8f94fb, #00f2ea);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        padding-top: 5rem; font-weight: 700;
+        margin-bottom: 2rem;
+    }
+    .sidebar-header {
+        font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center;
+        padding: 10px; background: rgba(0, 242, 234, 0.1); border-radius: 10px;
+    }
+
+    /* --- Details Page --- */
+    .details-container {
+        position: relative;
+        background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);
+        padding: 2rem; border-radius: 15px;
+        border: 1px solid rgba(255,255,255,0.2);
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+    .details-container::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        background-image: var(--bg-image);
+        background-size: cover; background-position: center;
+        filter: blur(20px) brightness(0.4); z-index: -1;
+        transform: scale(1.2);
+    }
+
+    /* --- Footer --- */
+    .footer {
+        text-align: center; padding: 2rem; margin-top: 3rem; color: #cccccc;
+        border-top: 1px solid #4e54c8;
+    }
+</style>
+
+<div class="aurora-container">
+    <div class="aurora aurora-1"></div>
+    <div class="aurora aurora-2"></div>
+    <div class="aurora aurora-3"></div>
+</div>
+<div class="starfall-container">
+    <div class="star s1"></div> <div class="star s2"></div>
+    <div class="star s3"></div> <div class="star s4"></div>
+    <div class="star s5"></div> <div class="star s6"></div>
+    <div class="star s7"></div> <div class="star s8"></div>
+    <div class="star s9"></div> <div class="star s10"></div>
+</div>
+""", unsafe_allow_html=True)
+
+# --- Data Loading ---
+@st.cache_resource
+def load_data():
+    movies = pickle.load(open('movies_full.pkl', 'rb'))
+    similarity = pickle.load(open('similarity.pkl', 'rb'))
+    genres = pickle.load(open('genres.pkl', 'rb'))
+    actors = pickle.load(open('actors.pkl', 'rb'))
+    directors = pickle.load(open('directors.pkl', 'rb'))
+
+    if 'year' not in movies.columns and 'release_date' in movies.columns:
+        movies['year'] = pd.to_datetime(movies['release_date'], errors='coerce').dt.year
+
+    return movies, similarity, genres, actors, directors
+
+movies, similarity, genres, actors, directors = load_data()
 
 # --- Session State Initialization ---
 if 'view' not in st.session_state:
@@ -27,93 +222,43 @@ if 'recommendations' not in st.session_state:
     st.session_state.recommendations = []
 if 'selected_for_rec' not in st.session_state:
     st.session_state.selected_for_rec = ""
-if 'top_movies' not in st.session_state:
-    st.session_state.top_movies = None
-if 'filtered_movies' not in st.session_state:
-    st.session_state.filtered_movies = None
+if 'top_movies_df' not in st.session_state:
+    st.session_state.top_movies_df = None
 
-# --- Enhanced CSS with Aurora Animation and Professional UI ---
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
-    html, body, .stApp { background: #000!important; color: #fff!important; font-family: 'Poppins', sans-serif!important; }
-    /* Aurora */
-    .aurora { position: fixed; top:0; left:0; width:200%; height:200%; background: radial-gradient(circle,#00f2ea55 0%,transparent 70%); animation: move 15s infinite alternate; mix-blend-mode: screen; }
-    @keyframes move { 0% { transform: translate(-25%, -25%) scale(1);} 100% { transform: translate(-50%, -50%) scale(1.2);} }
-    /* Starfall */
-    .star { position: fixed; top: -5px; width:4px; height:4px; background: #fff; border-radius:50%; animation: fall 4s linear infinite; opacity:.7; }
-    .star:nth-child(1){ left:10%; animation-delay:0s;}
-    .star:nth-child(2){ left:25%; animation-delay:1s;}
-    .star:nth-child(3){ left:40%; animation-delay:2s;}
-    .star:nth-child(4){ left:55%; animation-delay:.5s;}
-    .star:nth-child(5){ left:70%; animation-delay:1.5s;}
-    @keyframes fall {0%{top:-5px;}100%{top:110px;opacity:0;}}
-    /* Nav buttons */
-    .nav-btn{background:rgba(0,0,0,.3);backdrop-filter:blur(5px);color:#fff!important;
-      text-decoration:none;border-radius:10px;padding:.5rem 1.5rem;font-weight:600;border:1px solid rgba(255,25,255,.2);}
-    .nav-btn:hover{background:rgba(0,242,234,.8)!important;color:#0f0c29!important;}
-    /* Headers */
-    .main-header{font-size:3rem;text-align:center;
-      background:linear-gradient(45deg,#8f94fb,#00f2ea);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-      margin-top:2rem;margin-bottom:1rem;font-weight:700;}
-    /* Sidebar */
-    .sidebar-header{font-size:1.3rem;font-weight:700;text-align:center;
-      margin-bottom:1rem;padding:.5rem;background:rgba(0,242,234,.1);border-radius:10px;}
-    /* Movie cards */
-    .movie-card{background:rgba(255,255,255,.05);border-radius:15px;padding:1rem;margin:10px 0;
-      transition:.3s;border:1px solid transparent;backdrop-filter:blur(5px);}
-    .movie-card:hover{transform:translateY(-5px);box-shadow:0 8px 15px rgba(0,0,0,.4);border-color:#00f2ea;}
-    .movie-title{font-weight:600;font-size:1.1rem;color:#fff;text-align:center;margin-top:.5rem;}
-    /* Details */
-    .details-container{background:rgba(0,0,0,.3);padding:2rem;border-radius:15px;
-      margin-top:1rem;border:1px solid rgba(255,255,255,.2);}
-    /* Footer */
-    .footer{text-align:center;padding:2rem;margin-top:2rem;color:#ccc;border-top:1px solid #4e54c8;}
-</style>
-<div class="aurora"></div>
-<div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div>
-""", unsafe_allow_html=True)
-
-# --- Data Loading ---
-@st.cache_resource
-def load_data():
+# --- Query Parameters Helper Functions (Version Compatible) ---
+def get_query_params():
+    """Get query parameters in a version-compatible way"""
     try:
-        movies = pickle.load(open('movies_full.pkl', 'rb'))
-        similarity = pickle.load(open('similarity.pkl', 'rb'))
-        genres = pickle.load(open('genres.pkl', 'rb'))
-        actors = pickle.load(open('actors.pkl', 'rb'))
-        directors = pickle.load(open('directors.pkl', 'rb'))
-        
-        if 'year' not in movies.columns and 'release_date' in movies.columns:
-            movies['year'] = pd.to_datetime(movies['release_date'], errors='coerce').dt.year
-            
-        return movies, similarity, genres, actors, directors
-    except Exception as e:
-        st.error(f"Error loading data: {str(e)}")
-        return None, None, None, None, None
+        # Try new API first (Streamlit 1.30.0+)
+        return dict(st.query_params)
+    except (AttributeError, TypeError):
+        # Fall back to old API
+        return st.experimental_get_query_params()
 
-movies, similarity, genres, actors, directors = load_data()
-
-# Check if data loaded successfully
-if movies is None:
-    st.error("Failed to load data. Please check your data files.")
-    st.stop()
+def set_query_params(**kwargs):
+    """Set query parameters in a version-compatible way"""
+    try:
+        # Try new API first (Streamlit 1.30.0+)
+        for key, value in kwargs.items():
+            st.query_params[key] = str(value)
+    except (AttributeError, TypeError):
+        # Fall back to old API
+        st.experimental_set_query_params(**kwargs)
 
 # --- API & Helper Functions ---
 @st.cache_data
 def fetch_poster(movie_title):
     try:
-        # Use secrets for API key
-        api_key = st.secrets["TMDB_API_KEY"]
         movie_id = movies[movies['title'] == movie_title]['movie_id'].values[0]
+        # Securely get the API key from Streamlit's secrets manager
+        api_key = st.secrets["TMDB_API_KEY"]
         url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}&language=en-US"
         data = requests.get(url).json()
         poster_path = data.get('poster_path')
         if poster_path:
             return "https://image.tmdb.org/t/p/w500/" + poster_path
-    except Exception as e:
-        st.error(f"Error fetching poster: {str(e)}")
+    except Exception:
+        pass
     return "https://via.placeholder.com/500x750?text=Poster+Not+Available"
 
 def fetch_movie_details(movie_title):
@@ -150,6 +295,7 @@ def recommend(movie):
     except Exception:
         return []
 
+# --- Filter function with improved error handling ---
 def filter_movies_from_state():
     df = movies.copy()
     genre = st.session_state.get('filter_genre', '-- Select Genre --')
@@ -183,68 +329,63 @@ def display_movie_cards(movie_titles):
     cols = st.columns(5)
     for i, title in enumerate(movie_titles):
         with cols[i % 5]:
-            encoded_title = urllib.parse.quote_plus(title)
-            prev_view = st.session_state.get('view', 'home')
-            prev_page = st.session_state.get('current_page', 1)
+            # Create clickable movie card
+            if st.button(f"🎬 {title}", key=f"movie_btn_{i}_{title}", use_container_width=True):
+                st.session_state.view = 'details'
+                st.session_state.selected_movie = title
+                st.session_state.previous_view = st.session_state.view
+                st.session_state.previous_page = st.session_state.current_page
+                st.experimental_rerun()
             
+            # Display movie card
             st.markdown(f"""
-            <a href="?movie={encoded_title}&prev_view={prev_view}&prev_page={prev_page}" target="_self" style="text-decoration: none;">
-                <div class="movie-card">
-                    <img class="movie-poster" src="{fetch_poster(title)}" style="width: 100%; height: 250px; object-fit: cover; border-radius: 10px; margin-bottom: 1rem;">
-                    <div class="movie-title">{title}</div>
-                </div>
-            </a>
+            <div class="movie-card">
+                <img class="movie-poster" src="{fetch_poster(title)}">
+                <div class="movie-title">{title}</div>
+            </div>
             """, unsafe_allow_html=True)
 
 # --- Sidebar ---
 with st.sidebar:
     st.markdown("<h2 class='sidebar-header'>🔎 Filter Movies</h2>", unsafe_allow_html=True)
-    
     st.selectbox("Genre", ["-- Select Genre --"] + genres, key='filter_genre')
     st.selectbox("Actor", ["-- Select Actor --"] + actors, key='filter_actor')
     st.selectbox("Director", ["-- Select Director --"] + directors, key='filter_director')
-    
     if 'year' in movies.columns:
         year_min, year_max = int(movies['year'].min()), int(movies['year'].max())
         st.slider("Year Range", year_min, year_max, (year_min, year_max), key='filter_years')
     else:
         st.session_state.filter_years = None
-        
     st.slider("Minimum Rating", 0.0, 10.0, 0.0, step=0.5, key='filter_rating')
     st.selectbox("Sort By", ["popularity", 'release_date', 'vote_average', 'weighted_rating'], key='filter_sort_by')
 
     if st.button("Apply Filters"):
-        st.session_state.filtered_movies = filter_movies_from_state()
-        st.session_state.view = 'filtered_results'
-        st.session_state.current_page = 1
+        set_query_params(view='filtered_results', page="1")
+        st.experimental_rerun()
 
     st.markdown("<h2 class='sidebar-header'>🏆 Top Movies</h2>", unsafe_allow_html=True)
     if st.button("Show Top Movies"):
-        st.session_state.top_movies = get_top_movies()
-        st.session_state.view = 'top_movies'
-        st.session_state.current_page = 1
+        st.session_state.top_movies_df = get_top_movies()
+        set_query_params(view='top_movies', page="1")
+        st.experimental_rerun()
 
 # --- Main Page Content ---
-st.markdown("<a href='/?view=home' target='_self' class='nav-btn home-btn'>🏠 Home</a>", unsafe_allow_html=True)
+if st.button("🏠 Home", key="home_btn"):
+    st.session_state.view = 'home'
+    set_query_params(view='home', page="1")
+    st.experimental_rerun()
+
 st.markdown("<h1 class='main-header'>🎬 CineMatch</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center;'>Your Ultimate Movie Recommendation System</p>", unsafe_allow_html=True)
 
 # --- View Routing Logic ---
-# Use experimental_get_query_params for Streamlit compatibility
-params = st.experimental_get_query_params()
-
-# Update session state from query parameters
+params = get_query_params()
 if 'view' in params:
-    st.session_state.view = params['view'][0]
+    view_param = params['view']
+    st.session_state.view = view_param[0] if isinstance(view_param, list) else view_param
 if 'page' in params:
-    st.session_state.current_page = int(params['page'][0])
-if 'movie' in params:
-    st.session_state.view = 'details'
-    st.session_state.selected_movie = params['movie'][0]
-    if 'prev_view' in params:
-        st.session_state.previous_view = params['prev_view'][0]
-    if 'prev_page' in params:
-        st.session_state.previous_page = int(params['prev_page'][0])
+    page_param = params['page']
+    st.session_state.current_page = int(page_param[0] if isinstance(page_param, list) else page_param)
 
 # --- Page Display Logic ---
 if st.session_state.view == 'home':
@@ -253,6 +394,7 @@ if st.session_state.view == 'home':
     if st.button('Get Recommendations'):
         st.session_state.recommendations = recommend(selected_movie_name)
         st.session_state.selected_for_rec = selected_movie_name
+        st.experimental_rerun()
 
     if st.session_state.recommendations:
         st.subheader(f"Because you liked '{st.session_state.selected_for_rec}':")
@@ -265,13 +407,11 @@ if st.session_state.view == 'home':
 
 elif st.session_state.view == 'top_movies':
     st.header("Top Rated Movies")
-    
-    # Fix for pandas truth value error
-    if st.session_state.top_movies is None:
+    # Fixed DataFrame boolean evaluation issue
+    movie_df = st.session_state.top_movies_df
+    if movie_df is None:
         movie_df = get_top_movies()
-    else:
-        movie_df = st.session_state.top_movies
-        
+    
     if not movie_df.empty:
         MOVIES_PER_PAGE = 10
         total_pages = math.ceil(len(movie_df) / MOVIES_PER_PAGE)
@@ -281,27 +421,23 @@ elif st.session_state.view == 'top_movies':
         paginated_titles = movie_df['title'].iloc[start_idx:end_idx].tolist()
 
         display_movie_cards(paginated_titles)
-        
-        # Pagination controls
         c1, c2, c3 = st.columns([3, 1, 3])
-        if c1.button("⬅️ Previous", use_container_width=True, disabled=(page <= 1)):
-            st.session_state.current_page = page - 1
-            st.experimental_set_query_params(view='top_movies', page=str(st.session_state.current_page))
-        c2.markdown(f"<div style='text-align: center; margin-top: 0.5rem;'>Page {page} of {total_pages}</div>", unsafe_allow_html=True)
-        if c3.button("Next ➡️", use_container_width=True, disabled=(page >= total_pages)):
-            st.session_state.current_page = page + 1
-            st.experimental_set_query_params(view='top_movies', page=str(st.session_state.current_page))
+        if c1.button("⬅️ Previous", disabled=(page <= 1)):
+            set_query_params(view='top_movies', page=str(page - 1))
+            st.experimental_rerun()
+        c2.markdown(
+            f"<div style='text-align: center; margin-top: 0.5rem;'>Page {page} of {total_pages}</div>",
+            unsafe_allow_html=True
+        )
+        if c3.button("Next ➡️", disabled=(page >= total_pages)):
+            set_query_params(view='top_movies', page=str(page + 1))
+            st.experimental_rerun()
 
 elif st.session_state.view == 'filtered_results':
     st.header("Filtered Movie Results")
-    
-    # Get filtered movies
-    if st.session_state.filtered_movies is None:
+    with st.spinner('Loading filtered movies...'):
         filtered_df = filter_movies_from_state()
-        st.session_state.filtered_movies = filtered_df
-    else:
-        filtered_df = st.session_state.filtered_movies
-    
+
     if not filtered_df.empty:
         MOVIES_PER_PAGE = 10
         total_pages = math.ceil(len(filtered_df) / MOVIES_PER_PAGE)
@@ -311,60 +447,57 @@ elif st.session_state.view == 'filtered_results':
         paginated_titles = filtered_df['title'].iloc[start_idx:end_idx].tolist()
 
         display_movie_cards(paginated_titles)
-        
-        # Pagination controls
         c1, c2, c3 = st.columns([3, 1, 3])
-        if c1.button("⬅️ Previous", use_container_width=True, disabled=(page <= 1)):
-            st.session_state.current_page = page - 1
-            st.experimental_set_query_params(view='filtered_results', page=str(st.session_state.current_page))
-        c2.markdown(f"<div style='text-align: center; margin-top: 0.5rem;'>Page {page} of {total_pages}</div>", unsafe_allow_html=True)
-        if c3.button("Next ➡️", use_container_width=True, disabled=(page >= total_pages)):
-            st.session_state.current_page = page + 1
-            st.experimental_set_query_params(view='filtered_results', page=str(st.session_state.current_page))
+        if c1.button("⬅️ Previous", disabled=(page <= 1)):
+            set_query_params(view='filtered_results', page=str(page - 1))
+            st.experimental_rerun()
+        c2.markdown(
+            f"<div style='text-align: center; margin-top: 0.5rem;'>Page {page} of {total_pages}</div>",
+            unsafe_allow_html=True
+        )
+        if c3.button("Next ➡️", disabled=(page >= total_pages)):
+            set_query_params(view='filtered_results', page=str(page + 1))
+            st.experimental_rerun()
     else:
         st.warning("No movies found with the current filters. Please try different options.")
 
 elif st.session_state.view == 'details':
-    # Decode the movie title from the URL
-    decoded_movie_title = urllib.parse.unquote_plus(st.session_state.selected_movie)
-    details = fetch_movie_details(decoded_movie_title)
-    
+    details = fetch_movie_details(st.session_state.selected_movie)
     if details:
-        back_view = st.session_state.get('previous_view', 'home')
-        back_page = st.session_state.get('previous_page', 1)
-        
-        # Back button
-        if st.button("⬅️ Back to List"):
-            st.session_state.view = back_view
-            st.session_state.current_page = back_page
-            st.experimental_set_query_params(view=back_view, page=str(back_page))
+        if st.button("⬅️ Back to List", key="back_button"):
+            st.session_state.view = st.session_state.previous_view
+            st.session_state.current_page = st.session_state.previous_page
+            set_query_params(view=st.session_state.previous_view, page=str(st.session_state.previous_page))
+            st.experimental_rerun()
 
-        # Movie details
-        st.markdown(f"""
-        <div class="details-container">
-            <div style="display: flex; gap: 2rem;">
-                <div style="flex: 1;">
-                    <img src="{details['poster']}" style="width: 100%; border-radius: 10px;">
-                </div>
-                <div style="flex: 2;">
-                    <h1>{details['title']}</h1>
-                    <p><strong>Rating:</strong> ⭐ {details['vote_average']:.1f}/10</p>
-                    <p><strong>Release Date:</strong> {details['release_date']}</p>
-                    <p><strong>Runtime:</strong> {details['runtime']} minutes</p>
-                    <p><strong>Genres:</strong> {', '.join(details['genres'])}</p>
-                    <p><strong>Cast:</strong> {', '.join(details['cast'])}</p>
-                    <p><strong>Director(s):</strong> {', '.join(details['directors'])}</p>
-                    <h3>Overview</h3>
-                    <p>{details['overview']}</p>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f"<style> .details-container::before {{ --bg-image: url({details['poster']}); }} </style>",
+            unsafe_allow_html=True
+        )
+
+        with st.container():
+            st.markdown('<div class="details-container">', unsafe_allow_html=True)
+            col1, col2 = st.columns([1, 2])
+            with col1:
+                # Fixed: Use use_column_width instead of use_container_width
+                st.image(details['poster'], use_column_width=True)
+            with col2:
+                st.title(details['title'])
+                st.markdown(f"**Rating:** ⭐ {details['vote_average']:.1f}/10")
+                if details['runtime'] != 'N/A':
+                    st.markdown(f"**Runtime:** {details['runtime']} minutes")
+                st.markdown(f"**Genres:** {', '.join(details['genres'])}")
+                st.markdown(f"**Cast:** {', '.join(details['cast'])}")
+                st.markdown(f"**Director(s):** {', '.join(details['directors'])}")
+                st.subheader("Overview")
+                st.write(details['overview'])
+            st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.error("Could not load movie details.")
         if st.button("⬅️ Back to Home"):
             st.session_state.view = 'home'
-            st.experimental_set_query_params(view='home')
+            set_query_params(view='home', page="1")
+            st.experimental_rerun()
 
 # --- Footer ---
 st.markdown(
