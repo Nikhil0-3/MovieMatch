@@ -458,9 +458,10 @@ elif st.session_state.view == 'details':
 st.markdown(
     """
     <div class="footer">
-        <p>Nikhil More | nikhil.030304@gmail.com</p>
+        <p>Nikhil More | nikhil030304@gmail.com</p>
         <p>CineMatch © 2025</p>
     </div>
     """,
     unsafe_allow_html=True
 )
+
