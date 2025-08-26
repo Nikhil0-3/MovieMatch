@@ -29,6 +29,8 @@ if 'selected_for_rec' not in st.session_state:
     st.session_state.selected_for_rec = ""
 if 'top_movies' not in st.session_state:
     st.session_state.top_movies = None
+if 'filtered_movies' not in st.session_state:
+    st.session_state.filtered_movies = None
 
 # --- Enhanced CSS with Aurora Animation and Professional UI ---
 st.markdown("""
@@ -149,7 +151,8 @@ st.markdown("""
         font-size: 3.5rem; text-align: center;
         background: linear-gradient(45deg, #8f94fb, #00f2ea);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        padding-top: 5rem; font-weight: 700;
+        padding-top: 2rem; font-weight: 700;
+        margin-bottom: 2rem;
     }
     .sidebar-header {
         font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center;
@@ -254,12 +257,18 @@ def filter_movies_from_state():
     rating = st.session_state.get('filter_rating', 0.0)
     sort_by = st.session_state.get('filter_sort_by', 'popularity')
 
-    if genre != "-- Select Genre --": df = df[df['genres_flat'].apply(lambda x: genre in x)]
-    if actor != "-- Select Actor --": df = df[df['cast_flat'].apply(lambda x: actor in x)]
-    if director != "-- Select Director --": df = df[df['director_flat'].apply(lambda x: director in x)]
-    if years and 'year' in df.columns: df = df[(df['year'] >= years[0]) & (df['year'] <= years[1])]
-    if rating > 0: df = df[df['vote_average'] >= rating]
-    if sort_by: df = df.sort_values(by=sort_by, ascending=False)
+    if genre != "-- Select Genre --": 
+        df = df[df['genres_flat'].apply(lambda x: genre in x if isinstance(x, list) else False)]
+    if actor != "-- Select Actor --": 
+        df = df[df['cast_flat'].apply(lambda x: actor in x if isinstance(x, list) else False)]
+    if director != "-- Select Director --": 
+        df = df[df['director_flat'].apply(lambda x: director in x if isinstance(x, list) else False)]
+    if years and 'year' in df.columns: 
+        df = df[(df['year'] >= years[0]) & (df['year'] <= years[1])]
+    if rating > 0: 
+        df = df[df['vote_average'] >= rating]
+    if sort_by: 
+        df = df.sort_values(by=sort_by, ascending=False)
     return df
 
 @st.cache_data
@@ -300,8 +309,10 @@ with st.sidebar:
     st.selectbox("Sort By", ["popularity", 'release_date', 'vote_average', 'weighted_rating'], key='filter_sort_by')
 
     if st.button("Apply Filters"):
+        st.session_state.filtered_movies = filter_movies_from_state()
         st.session_state.view = 'filtered_results'
         st.session_state.current_page = 1
+        st.rerun()
 
     st.markdown("<h2 class='sidebar-header'>🏆 Top Movies</h2>", unsafe_allow_html=True)
     st.write("")
@@ -309,6 +320,7 @@ with st.sidebar:
         st.session_state.top_movies = get_top_movies()
         st.session_state.view = 'top_movies'
         st.session_state.current_page = 1
+        st.rerun()
 
 # --- Main Page Content ---
 st.markdown("<a href='/?view=home' target='_self' class='nav-btn home-btn'>🏠 Home</a>", unsafe_allow_html=True)
@@ -338,6 +350,7 @@ if st.session_state.view == 'home':
     if st.button('Get Recommendations'):
         st.session_state.recommendations = recommend(selected_movie_name)
         st.session_state.selected_for_rec = selected_movie_name
+        st.rerun()
     
     if st.session_state.recommendations:
         st.subheader(f"Because you liked '{st.session_state.selected_for_rec}':")
@@ -365,16 +378,20 @@ elif st.session_state.view == 'top_movies':
         if c1.button("⬅️ Previous", use_container_width=True, disabled=(page <= 1)):
             st.session_state.current_page = page - 1
             st.experimental_set_query_params(view='top_movies', page=str(st.session_state.current_page))
+            st.rerun()
         c2.markdown(f"<div style='text-align: center; margin-top: 0.5rem;'>Page {page} of {total_pages}</div>", unsafe_allow_html=True)
         if c3.button("Next ➡️", use_container_width=True, disabled=(page >= total_pages)):
             st.session_state.current_page = page + 1
             st.experimental_set_query_params(view='top_movies', page=str(st.session_state.current_page))
+            st.rerun()
 
 elif st.session_state.view == 'filtered_results':
     st.header("Filtered Movie Results")
     
-    with st.spinner('Loading filtered movies...'):
+    filtered_df = st.session_state.get('filtered_movies')
+    if filtered_df is None:
         filtered_df = filter_movies_from_state()
+        st.session_state.filtered_movies = filtered_df
     
     if not filtered_df.empty:
         MOVIES_PER_PAGE = 10
@@ -390,10 +407,12 @@ elif st.session_state.view == 'filtered_results':
         if c1.button("⬅️ Previous", use_container_width=True, disabled=(page <= 1)):
             st.session_state.current_page = page - 1
             st.experimental_set_query_params(view='filtered_results', page=str(st.session_state.current_page))
+            st.rerun()
         c2.markdown(f"<div style='text-align: center; margin-top: 0.5rem;'>Page {page} of {total_pages}</div>", unsafe_allow_html=True)
         if c3.button("Next ➡️", use_container_width=True, disabled=(page >= total_pages)):
             st.session_state.current_page = page + 1
             st.experimental_set_query_params(view='filtered_results', page=str(st.session_state.current_page))
+            st.rerun()
     else:
         st.warning("No movies found with the current filters. Please try different options.")
 
