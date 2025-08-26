@@ -66,6 +66,39 @@ st.markdown("""
     .aurora-1 { width: 80vmax; height: 80vmax; top: 50%; left: 50%; background: radial-gradient(circle, #00f2ea 0%, rgba(0, 242, 234, 0) 70%); animation-duration: 15s; }
     .aurora-2 { width: 60vmax; height: 60vmax; top: 20%; left: 20%; background: radial-gradient(circle, #8f94fb 0%, rgba(143, 148, 251, 0) 70%); animation-duration: 12s; animation-direction: reverse; }
     .aurora-3 { width: 70vmax; height: 70vmax; top: 80%; left: 80%; background: radial-gradient(circle, #4e54c8 0%, rgba(78, 84, 200, 0) 70%); animation-duration: 18s; }
+
+    .starfall-container {
+        pointer-events:none;
+        position:fixed;
+        top:0;
+        left:0;
+        width:100vw;
+        height:120px;
+        z-index:100;
+    }
+    .star {
+        position:absolute;
+        border-radius:50%;
+        opacity:0.7;
+        width:8px;
+        height:8px;
+        animation: fall 3s linear infinite;
+    }
+    .star.s1 { left: 5vw; animation-duration: 1.3s; background: #ffd700;}
+    .star.s2 { left: 15vw; animation-duration: 2.0s; background: #4a90e2;}
+    .star.s3 { left: 25vw; animation-duration: 2.7s; background: #ff69b4;}
+    .star.s4 { left: 35vw; animation-duration: 2.2s; background: #43c6ac;}
+    .star.s5 { left: 45vw; animation-duration: 2.8s; background: #fff;}
+    .star.s6 { left: 55vw; animation-duration: 2.4s; background: #ffd700;}
+    .star.s7 { left: 65vw; animation-duration: 2.0s; background: #4a90e2;}
+    .star.s8 { left: 75vw; animation-duration: 1.9s; background: #ff69b4;}
+    .star.s9 { left: 85vw; animation-duration: 2.2s; background: #43c6ac;}
+    .star.s10 { left: 95vw; animation-duration: 1.8s; background: #fff;}
+    @keyframes fall {
+        0% { top: 0; opacity: 0.8;}
+        80% { opacity: 0.8;}
+        100% { top: 110px; opacity: 0;}
+    }
             
     /* --- Buttons & Interactive Elements --- */
     .stButton > button {
@@ -82,7 +115,7 @@ st.markdown("""
         background: rgba(0,0,0,0.3); backdrop-filter: blur(5px);
         color: white !important; text-decoration: none; border-radius: 10px;
         padding: 0.5rem 1.5rem; font-weight: 600; cursor: pointer;
-        z-index: 2000; border: 1px solid rgba(255,255,255,0.2);
+        z-index: 2000; border: 1px solid rgba(255,25,255,0.2);
         transition: all 0.2s ease-in-out;
     }
     .nav-btn:hover {
@@ -90,7 +123,7 @@ st.markdown("""
         box-shadow: 0 0 15px #00f2ea;
         color: #0f0c29 !important;
     }
-    .home-btn { position: fixed; top: 20px; left: 20px; }
+    .home-btn {  top: 60px; left: 200px; }
     .back-btn { display: inline-block; margin-bottom: 1rem; }
 
     /* --- Movie Cards --- */
@@ -120,7 +153,6 @@ st.markdown("""
         background: linear-gradient(45deg, #8f94fb, #00f2ea);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         padding-top: 5rem; font-weight: 700;
-        margin-bottom: 2rem;
     }
     .sidebar-header {
         font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center;
@@ -154,6 +186,13 @@ st.markdown("""
     <div class="aurora aurora-1"></div>
     <div class="aurora aurora-2"></div>
     <div class="aurora aurora-3"></div>
+</div>
+<div class="starfall-container">
+    <div class="star s1"></div> <div class="star s2"></div>
+    <div class="star s3"></div> <div class="star s4"></div>
+    <div class="star s5"></div> <div class="star s6"></div>
+    <div class="star s7"></div> <div class="star s8"></div>
+    <div class="star s9"></div> <div class="star s10"></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -379,3 +418,4 @@ st.markdown(
     """, 
     unsafe_allow_html=True
 )
+
