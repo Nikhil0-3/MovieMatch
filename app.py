@@ -13,7 +13,7 @@ TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 
 # Page configuration
 st.set_page_config(
-    page_title="🎬 CineMatch - Movie Recommendation System",
+    page_title="🎬 MovieMatch - Movie Recommendation System",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -464,4 +464,5 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
