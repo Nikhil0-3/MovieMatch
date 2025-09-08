@@ -330,6 +330,7 @@ with st.sidebar:
         st.query_params.page = "1"
 
     st.markdown("<h2 class='sidebar-header'>🏆 Top Movies</h2>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
     if st.button("Show Top Movies"):
         st.session_state.top_movies = get_top_movies()
         st.query_params.view = 'top_movies'
@@ -464,6 +465,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
