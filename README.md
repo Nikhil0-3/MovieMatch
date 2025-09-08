@@ -1,23 +1,26 @@
-# 🎬 CineMatch - Movies Recommendation System  
+# 🎬 MovieMatch - Movies Recommendation System  
 
 An intelligent movie discovery platform that provides personalized movie suggestions. This repository contains the complete data processing and model training pipeline, which generates the files needed for the final Streamlit web application.  
 
+Visit here: https://moviematch11.streamlit.app/
 ---
 
 ## 🚀 About The Project  
 
-CineMatch is a *content-based recommendation system* that predicts user preferences and suggests movies with similar themes, genres, or contributors.  
+MovieMatch is a *content-based recommendation system* that predicts user preferences and suggests movies with similar themes, genres, or contributors.  
 
 The recommendation engine is built on cosine similarity applied to a carefully engineered set of metadata, ensuring *contextually relevant and accurate movie matches*.  
 
 ---
+<img width="1919" height="994" alt="Screenshot 2025-09-08 172408" src="https://github.com/user-attachments/assets/0b63d0d7-f8cc-4811-a2ff-85eb58017ade" />
 
-<img width="1919" height="976" alt="Screenshot 2025-08-26 222250" src="https://github.com/user-attachments/assets/b257cd94-956c-4a6c-9839-0c3aeb5a30e8" />
+
 
 ---
 
-<img width="1919" height="992" alt="Screenshot 2025-08-26 222111" src="https://github.com/user-attachments/assets/29fb0234-5b0d-4803-9228-9168d0136e77" />
-  
+
+  <img width="1919" height="973" alt="Screenshot 2025-09-08 172454" src="https://github.com/user-attachments/assets/636f38aa-8574-45c8-a44f-88425a90ad3f" />
+
 ---
 
 ## 🧠 The Recommendation Pipeline  
@@ -48,7 +51,8 @@ The system follows a classic NLP-based pipeline:
 * 🔒 *Secure API Handling* – TMDB API key is stored in secrets.toml.  
 
 
-<img width="1919" height="979" alt="Screenshot 2025-08-26 222339" src="https://github.com/user-attachments/assets/7a1678a5-61d2-4059-bb4d-8658bb2b7bd0" />
+
+<img width="1909" height="994" alt="Screenshot 2025-09-08 172906" src="https://github.com/user-attachments/assets/80e8ad0c-608a-40f6-9417-0565df83917e" />
 
 ---
 
