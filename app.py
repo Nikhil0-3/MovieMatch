@@ -5,11 +5,9 @@ import pandas as pd
 import math
 import urllib.parse
 import os
-from dotenv import load_dotenv  # <-- NEW
 
-# Load environment variables
-load_dotenv()
-TMDB_API_KEY = os.getenv("TMDB_API_KEY")
+# --- Load TMDB API Key from Streamlit Secrets ---
+TMDB_API_KEY = st.secrets.get("TMDB_API_KEY")
 
 # Page configuration
 st.set_page_config(
@@ -186,6 +184,7 @@ st.markdown("""
 
 
 # --- Data Loading ---
+# --- Data Loading ---
 @st.cache_resource
 def load_data():
     movies = pickle.load(open('movies_full.pkl', 'rb'))
@@ -201,7 +200,6 @@ def load_data():
 
 movies, similarity, genres, actors, directors = load_data()
 
-
 # --- Session State Initialization ---
 if 'view' not in st.session_state:
     st.session_state.view = 'home'
@@ -209,7 +207,6 @@ if 'selected_movie' not in st.session_state:
     st.session_state.selected_movie = None
 if 'current_page' not in st.session_state:
     st.session_state.current_page = 1
-
 
 # --- API & Helper Functions ---
 @st.cache_data
@@ -225,17 +222,12 @@ def fetch_poster(movie_title):
         pass
     return "https://via.placeholder.com/500x750?text=Poster+Not+Available"
 
-
 def fetch_movie_details(movie_title):
     try:
         movie_data = movies[movies['title'] == movie_title].iloc[0]
         return {
             'title': movie_data['title'],
-            'overview': (
-                " ".join(movie_data.get('overview', []))
-                if isinstance(movie_data.get('overview'), list)
-                else movie_data.get('overview', 'No overview available.')
-            ),
+            'overview': movie_data.get('overview', 'No overview available.'),
             'release_date': movie_data.get('release_date', 'N/A'),
             'runtime': movie_data.get('runtime', 'N/A'),
             'vote_average': movie_data.get('vote_average', 0),
@@ -246,7 +238,6 @@ def fetch_movie_details(movie_title):
         }
     except IndexError:
         return None
-
 
 def recommend(movie):
     try:
@@ -261,8 +252,6 @@ def recommend(movie):
     except Exception:
         return []
 
-
-# --- New function to filter based on saved choices ---
 def filter_movies_from_state():
     df = movies.copy()
     genre = st.session_state.get('filter_genre', '-- Select Genre --')
@@ -287,11 +276,9 @@ def filter_movies_from_state():
 
     return df
 
-
 @st.cache_data
 def get_top_movies(n=50, sort_by='weighted_rating'):
     return movies.sort_values(by=sort_by, ascending=False).head(n)
-
 
 # --- UI Display Functions ---
 def display_movie_cards(movie_titles):
@@ -310,8 +297,7 @@ def display_movie_cards(movie_titles):
             </a>
             """, unsafe_allow_html=True)
 
-
-# --- Sidebar ---
+# --- Sidebar Filters (unchanged) ---
 with st.sidebar:
     st.markdown("<h2 class='sidebar-header'>🔎 Filter Movies</h2>", unsafe_allow_html=True)
     st.selectbox("Genre", ["-- Select Genre --"] + genres, key='filter_genre')
@@ -324,17 +310,13 @@ with st.sidebar:
         st.session_state.filter_years = None
     st.slider("Minimum Rating", 0.0, 10.0, 0.0, step=0.5, key='filter_rating')
     st.selectbox("Sort By", ["popularity", 'release_date', 'vote_average', 'weighted_rating'], key='filter_sort_by')
-
     if st.button("Apply Filters"):
-        st.query_params.view = 'filtered_results'
-        st.query_params.page = "1"
-
-    st.markdown("<h2 class='sidebar-header'>🏆 Top Movies</h2>", unsafe_allow_html=True)
+        st.session_state.view = 'filtered_results'
+        st.session_state.current_page = 1
     if st.button("Show Top Movies"):
         st.session_state.top_movies = get_top_movies()
-        st.query_params.view = 'top_movies'
-        st.query_params.page = "1"
-
+        st.session_state.view = 'top_movies'
+        st.session_state.current_page = 1
 
 # --- Main Page Content ---
 st.markdown("<a href='/?view=home' target='_self' class='nav-btn home-btn'>🏠 Home</a>", unsafe_allow_html=True)
@@ -459,10 +441,8 @@ st.markdown(
     """
     <div class="footer">
         <p>Nikhil More | nikhil030304@gmail.com</p>
-        <p>CineMatch © 2025</p>
+        <p>MovieMatch © 2025</p>
     </div>
     """,
     unsafe_allow_html=True
 )
-
-
